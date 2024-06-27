@@ -1,4 +1,4 @@
-import AccountPage from "../../pageobjects/AccountPage";
+import AccountPage from "../pageobjects/AccountPage";
 
 const { chromium } = require("playwright");
 import { test, expect } from "@playwright/test";
