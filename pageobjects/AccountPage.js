@@ -13,11 +13,11 @@ export default class Account {
     pageContext: '[data-cy-ctx="molecules/account/AccountLoginForm"]',
     formLoginMail: ".login-mail",
     accountIcon: ".account",
-  };
-  urls = {
-    lusini: "https://dev.lusini.com:8000/",
-    account: "https://dev.lusini.com:8000/account/",
-    accountLogin: "https://dev.lusini.com:8000/account/login/",
+    fieldEmailInput: '[data-cy-handle="email-input"]',
+    fieldPasswordInput: '[data-cy-handle="password-input"]',
+    buttonLogin: '[data-cy-handle="login-btn"]',
+    // data-cy-state="login-form-password-error"
+    stateErrorPassword: '[data-cy-state="login-form-password-error"]',
   };
 
   getElements() {
@@ -25,11 +25,29 @@ export default class Account {
       pageContext: () => this.page.locator(this.cssPathes.pageContext),
       formLoginMail: () => this.page.locator(this.cssPathes.formLoginMail),
       accountIcon: () => this.page.locator(this.cssPathes.accountIcon),
+      fieldEmailInput: () => this.page.locator(this.cssPathes.fieldEmailInput),
+      fieldPasswordInput: () =>
+        this.page.locator(this.cssPathes.fieldPasswordInput),
+      buttonLogin: () => this.page.locator(this.cssPathes.buttonLogin),
+      stateErrorPassword: () =>
+        this.page.locator(this.cssPathes.stateErrorPassword),
     };
   }
 
-  actions = {};
+  actions = {
+    loginAsUser: async (user) => {
+      console.log("-> fillLoginForm");
+      await this.page.fill(this.cssPathes.fieldEmailInput, user.email);
+      await this.page.fill(this.cssPathes.fieldPasswordInput, user.password);
+      await this.page.click(this.cssPathes.buttonLogin);
+    },
+  };
 
+  urls = {
+    lusini: "https://dev.lusini.com:8000/",
+    account: "https://dev.lusini.com:8000/account/",
+    accountLogin: "https://dev.lusini.com:8000/account/login/",
+  };
   setCookies(context) {
     console.log("-> setCookies");
     return {

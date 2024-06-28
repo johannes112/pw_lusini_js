@@ -1,6 +1,7 @@
 import AccountPage from "../pageobjects/AccountPage";
 
 const { chromium } = require("playwright");
+import { users } from "../data/users.json";
 import { test, expect } from "@playwright/test";
 import { beforeAll } from "@playwright/test";
 import { afterAll } from "@playwright/test";
@@ -39,6 +40,16 @@ test.describe("template account", () => {
     await page.goto(account.urls.accountLogin);
     // locator exists and is visible on the page
     await expect(pageElements.formLoginMail()).toBeVisible();
+  });
+  test("get an error msg when login with an unregistered user", async () => {
+    // visit the accountpage
+    await page.goto(account.urls.accountLogin);
+    // negative test
+    await expect(pageElements.stateErrorPassword()).not.toBeVisible();
+    // fill the login form
+    await account.actions.loginAsUser(users[0]);
+    // expect the error message to be visible
+    await expect(pageElements.stateErrorPassword()).toBeVisible();
   });
   test("navigates to account-url when user click to the account-icon", async () => {
     await page.goto("https://dev.lusini.com:8000");
