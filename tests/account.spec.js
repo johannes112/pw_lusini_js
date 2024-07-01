@@ -1,5 +1,5 @@
 import AccountPage from "../pageobjects/AccountPage";
-
+const { use } = require("../playwright.config");
 const { chromium } = require("playwright");
 import { users } from "../data/users.json";
 import { test, expect } from "@playwright/test";
@@ -25,6 +25,18 @@ test.describe("template account", () => {
     await browser.close();
   });
 
+  test.only("navigates to account-url when user click to the account-icon", async () => {
+    await page.goto("/");
+    // negative test
+    await expect(page.url()).not.toBe(use.baseURL + account.urls.accountLogin);
+    // click on the account-icon
+    await pageElements.accountIcon().click();
+    await page.waitForURL(use.baseURL + account.urls.accountLogin, {
+      // Ensure consistent variable name
+      timeout: 2000,
+    });
+    await expect(page.url()).toBe(use.baseURL + account.urls.accountLogin);
+  });
   test("contains the account-context when user is on the account-page", async () => {
     // negative test
     await expect(pageElements.pageContext()).not.toBeVisible();
@@ -50,14 +62,5 @@ test.describe("template account", () => {
     await account.actions.loginAsUser(users[0]);
     // expect the error message to be visible
     await expect(pageElements.stateErrorPassword()).toBeVisible();
-  });
-  test("navigates to account-url when user click to the account-icon", async () => {
-    await page.goto("https://dev.lusini.com:8000");
-    // negative test
-    await expect(pageElements.pageContext()).not.toBeVisible();
-    // click on the account-icon
-    await pageElements.accountIcon().click();
-    // check if the context of the accountpage is visible
-    await expect(pageElements.pageContext()).toBeVisible();
   });
 });
