@@ -45,8 +45,8 @@ export default class Account {
 
   urls = {
     lusini: "https://dev.lusini.com:8000/",
-    account: "https://dev.lusini.com:8000/account/",
-    accountLogin: "https://dev.lusini.com:8000/account/login/",
+    account: "account/",
+    accountLogin: "account/login/",
   };
   setCookies(context) {
     console.log("-> setCookies");
