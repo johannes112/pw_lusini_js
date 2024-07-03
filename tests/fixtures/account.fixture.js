@@ -4,13 +4,13 @@ import AccountPage from "../../pageobjects/AccountPage"; // Adjust the path to t
 import { chromium } from "playwright";
 
 export const accountTest = baseTest.extend({
-  pageAndAccountPage: async ({}, use) => {
+  accountPageObj: async ({}, use) => {
     const browser = await chromium.launch();
     const context = await browser.newContext();
     const page = await context.newPage();
     const accountPage = new AccountPage(page);
-
-    await use({ page, accountPage, context }); // Makes the page available to the test
+    const pageElements = accountPage.getElements();
+    await use({ context, page, accountPage, pageElements }); // Makes the page available to the test
     await browser.close(); // Cleanup after the test
   },
 });
