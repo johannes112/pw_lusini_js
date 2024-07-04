@@ -1,3 +1,4 @@
+import config from "../playwright.config.js";
 export default class Account {
   constructor(page) {
     this.page = page;
@@ -7,8 +8,6 @@ export default class Account {
   async initialize() {
     // Function to be executed first
     console.log("-> handle Account");
-    console.log("current URL", this.page.url());
-    console.log("current Date", this.getCurrentDate());
   }
 
   cssPathes = {
@@ -21,32 +20,6 @@ export default class Account {
     // data-cy-state="login-form-password-error"
     stateErrorPassword: '[data-cy-state="login-form-password-error"]',
   };
-
-  // Custom locator wrapper method
-  async secureLocator(selector, options = { retry: 1 }) {
-    try {
-      // Attempt to find the element
-      const element = await this.page.waitForSelector(selector, {
-        state: "attached",
-      });
-      return this.page.locator(selector);
-    } catch (error) {
-      if (options.retry > 0) {
-        console.log(
-          `Element not found, setting a cookie and retrying: ${selector}`
-        );
-        // Set a cookie here
-        await this.page
-          .context()
-          .addCookies([{ name: "retry", value: "1", url: this.page.url() }]);
-        // Decrement retry count and retry
-        return this.customLocator(selector, { retry: options.retry - 1 });
-      } else {
-        // If retries are exhausted, throw the error
-        throw error;
-      }
-    }
-  }
 
   elements = {
     pageContext: () => this.page.locator(this.cssPathes.pageContext),
@@ -67,10 +40,14 @@ export default class Account {
       await this.page.fill(this.cssPathes.fieldPasswordInput, user.password);
       await this.page.click(this.cssPathes.buttonLogin);
     },
+    clickIcon: async () => {
+      console.log("-> clickIcon");
+      await this.secureClick(this.cssPathes.accountIcon);
+    },
   };
 
   urls = {
-    lusini: "https://dev.lusini.com:8000/",
+    lusini: config.use.baseURL,
     account: "account/",
     accountLogin: "account/login/",
   };
@@ -103,7 +80,7 @@ export default class Account {
         await context.addCookies([
           {
             name: "OptanonAlertBoxClosed",
-            value: "2024-07-03T16:05:06.188Z",
+            value: this.getCurrentDate(),
             url: this.urls.lusini,
           },
         ]),
@@ -111,11 +88,37 @@ export default class Account {
   }
 
   // get current date -> for cookie
-  async getCurrentDate() {
+  getCurrentDate() {
     const date = new Date();
-    const isoDate = await date.toISOString();
-    console.log(isoDate);
-    console.log(typeof isoDate);
+    const isoDate = date.toISOString();
     return isoDate;
+  }
+
+  // set a cookie and retry it
+  async secureClick(selector, options = { retry: 2 }) {
+    let attempts = 0;
+    while (attempts < options.retry) {
+      try {
+        console.log("> secureClick");
+        console.log(`Attempt to click on ${selector}, try #${attempts + 1}`);
+        const element = await this.page.locator(selector);
+        // Set cookies to close the cookie banner
+        this.setCookies(this.page.context()).closeCookieBanner();
+        // Click the element
+        console.log(`Clicked on ${selector} successfully.`);
+        await element.click({ timeout: 1000 });
+        return true;
+      } catch (error) {
+        console.error(`Error clicking on ${selector}:`, error);
+        // Increment the attempt counter
+        attempts++;
+        // Optionally, wait a bit before retrying (e.g., 500ms)
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+    console.error(
+      `Failed to click on ${selector} after ${options.retry} attempts.`
+    );
+    return false; // Click failed after retrying
   }
 }
