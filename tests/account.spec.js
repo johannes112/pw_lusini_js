@@ -7,18 +7,22 @@ import { beforeAll } from "@playwright/test";
 import { afterAll } from "@playwright/test";
 
 test.describe("template account", () => {
-  let browser, page, context, account, pageElements;
+  let browser, page, context, account, pageElements, cookies;
 
   beforeAll(async () => {
     browser = await chromium.launch();
     context = await browser.newContext();
     page = await context.newPage();
     account = new AccountPage(page); // Assuming 'page' is defined and is an instance of Playwright's Page
-    pageElements = account.getElements();
+    pageElements = account.elements;
     // set Cookies
-    account.setCookies(context).setB2b();
+
+    // Get cookies from the current context
+    cookies = await context.cookies();
+    console.log("Cookies after beforeAll:", cookies);
+    await account.setCookies(context).setB2c();
+    await account.setCookies(context).closeCookieBanner();
     console.log("URL", page.url());
-    account.setCookies(context).closeCookieBanner();
   });
 
   afterAll(async () => {
@@ -27,6 +31,9 @@ test.describe("template account", () => {
 
   test.only("navigates to account-url when user click to the account-icon", async () => {
     await page.goto("/");
+    // coookie
+    cookies = await context.cookies();
+    console.log("Cookies in testcase", cookies);
     // negative test
     await expect(page.url()).not.toBe(use.baseURL + account.urls.accountLogin);
     // click on the account-icon
