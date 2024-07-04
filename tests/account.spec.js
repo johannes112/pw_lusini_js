@@ -26,18 +26,21 @@ test.describe("template account", () => {
   });
 
   afterAll(async () => {
+    // Get all cookies
+    const cookies = await context.cookies();
+    console.log(cookies);
+    console.log("AllCookies after afterAll:", cookies);
     await browser.close();
   });
 
-  test.only("navigates to account-url when user click to the account-icon", async () => {
+  test("navigates to account-url when user click to the account-icon", async () => {
     await page.goto("/");
-    // coookie
-    cookies = await context.cookies();
-    console.log("Cookies in testcase", cookies);
     // negative test
     await expect(page.url()).not.toBe(use.baseURL + account.urls.accountLogin);
     // click on the account-icon
-    await pageElements.accountIcon().click();
+    // await pageElements.accountIcon().click();
+    await account.actions.clickIcon();
+    // await account.secureClick(account.elements.accountIcon());
     await page.waitForURL(use.baseURL + account.urls.accountLogin, {
       // Ensure consistent variable name
       timeout: 2000,
