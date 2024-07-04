@@ -7,6 +7,8 @@ export default class Account {
   async initialize() {
     // Function to be executed first
     console.log("-> handle Account");
+    console.log("current URL", this.page.url());
+    console.log("current Date", this.getCurrentDate());
   }
 
   cssPathes = {
@@ -20,19 +22,43 @@ export default class Account {
     stateErrorPassword: '[data-cy-state="login-form-password-error"]',
   };
 
-  getElements() {
-    return {
-      pageContext: () => this.page.locator(this.cssPathes.pageContext),
-      formLoginMail: () => this.page.locator(this.cssPathes.formLoginMail),
-      accountIcon: () => this.page.locator(this.cssPathes.accountIcon),
-      fieldEmailInput: () => this.page.locator(this.cssPathes.fieldEmailInput),
-      fieldPasswordInput: () =>
-        this.page.locator(this.cssPathes.fieldPasswordInput),
-      buttonLogin: () => this.page.locator(this.cssPathes.buttonLogin),
-      stateErrorPassword: () =>
-        this.page.locator(this.cssPathes.stateErrorPassword),
-    };
+  // Custom locator wrapper method
+  async secureLocator(selector, options = { retry: 1 }) {
+    try {
+      // Attempt to find the element
+      const element = await this.page.waitForSelector(selector, {
+        state: "attached",
+      });
+      return this.page.locator(selector);
+    } catch (error) {
+      if (options.retry > 0) {
+        console.log(
+          `Element not found, setting a cookie and retrying: ${selector}`
+        );
+        // Set a cookie here
+        await this.page
+          .context()
+          .addCookies([{ name: "retry", value: "1", url: this.page.url() }]);
+        // Decrement retry count and retry
+        return this.customLocator(selector, { retry: options.retry - 1 });
+      } else {
+        // If retries are exhausted, throw the error
+        throw error;
+      }
+    }
   }
+
+  elements = {
+    pageContext: () => this.page.locator(this.cssPathes.pageContext),
+    formLoginMail: () => this.page.locator(this.cssPathes.formLoginMail),
+    accountIcon: () => this.page.locator(this.cssPathes.accountIcon),
+    fieldEmailInput: () => this.page.locator(this.cssPathes.fieldEmailInput),
+    fieldPasswordInput: () =>
+      this.page.locator(this.cssPathes.fieldPasswordInput),
+    buttonLogin: () => this.page.locator(this.cssPathes.buttonLogin),
+    stateErrorPassword: () =>
+      this.page.locator(this.cssPathes.stateErrorPassword),
+  };
 
   actions = {
     loginAsUser: async (user) => {
@@ -48,6 +74,12 @@ export default class Account {
     account: "account/",
     accountLogin: "account/login/",
   };
+  cookies = {
+    b2b: "channel=b2b",
+    b2c: "channel=b2c",
+    cookieBanner: "OptanonAlertBoxClosed",
+  };
+
   setCookies(context) {
     console.log("-> setCookies");
     return {
@@ -55,7 +87,7 @@ export default class Account {
         await context.addCookies([
           {
             name: "channel",
-            value: "b2b",
+            value: "de-de_b2b",
             url: this.urls.lusini,
           },
         ]),
@@ -63,7 +95,7 @@ export default class Account {
         await context.addCookies([
           {
             name: "channel",
-            value: "b2c",
+            value: "de-de_b2c",
             url: this.urls.lusini,
           },
         ]),
@@ -71,7 +103,7 @@ export default class Account {
         await context.addCookies([
           {
             name: "OptanonAlertBoxClosed",
-            value: this.getCurrentDate(),
+            value: "2024-07-03T16:05:06.188Z",
             url: this.urls.lusini,
           },
         ]),
@@ -79,9 +111,9 @@ export default class Account {
   }
 
   // get current date -> for cookie
-  getCurrentDate() {
+  async getCurrentDate() {
     const date = new Date();
-    const isoDate = date.toISOString();
+    const isoDate = await date.toISOString();
     console.log(isoDate);
     console.log(typeof isoDate);
     return isoDate;
