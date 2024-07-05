@@ -10,6 +10,7 @@ export default class Account {
     console.log("-> handle Account");
   }
 
+  /** cssPathes: CSS-Selectors */
   cssPathes = {
     pageContext: '[data-cy-ctx="molecules/account/AccountLoginForm"]',
     formLoginMail: ".login-mail",
@@ -21,6 +22,7 @@ export default class Account {
     stateErrorPassword: '[data-cy-state="login-form-password-error"]',
   };
 
+  /** elements: Elements (get by selectors) */
   elements = {
     pageContext: () => this.page.locator(this.cssPathes.pageContext),
     formLoginMail: () => this.page.locator(this.cssPathes.formLoginMail),
@@ -33,6 +35,7 @@ export default class Account {
       this.page.locator(this.cssPathes.stateErrorPassword),
   };
 
+  /** actions: Multisteps (related) */
   actions = {
     loginAsUser: async (user) => {
       console.log("-> fillLoginForm");
@@ -46,46 +49,41 @@ export default class Account {
     },
   };
 
+  /** urls: relative http-pathes */
   urls = {
     lusini: config.use.baseURL,
     account: "account/",
     accountLogin: "account/login/",
   };
-  cookies = {
-    b2b: "channel=b2b",
-    b2c: "channel=b2c",
-    cookieBanner: "OptanonAlertBoxClosed",
-  };
 
-  setCookies(context) {
-    console.log("-> setCookies");
-    return {
-      setB2b: async () =>
-        await context.addCookies([
-          {
-            name: "channel",
-            value: "de-de_b2b",
-            url: this.urls.lusini,
-          },
-        ]),
-      setB2c: async () =>
-        await context.addCookies([
-          {
-            name: "channel",
-            value: "de-de_b2c",
-            url: this.urls.lusini,
-          },
-        ]),
-      closeCookieBanner: async () =>
-        await context.addCookies([
-          {
-            name: "OptanonAlertBoxClosed",
-            value: this.getCurrentDate(),
-            url: this.urls.lusini,
-          },
-        ]),
-    };
-  }
+  /** Cookies */
+  cookies = {
+    b2b: {
+      name: "channel",
+      value: "de-de_b2b",
+      url: this.urls.lusini,
+    },
+    b2c: {
+      name: "channel",
+      value: "de-de_b2c",
+      url: this.urls.lusini,
+    },
+    cookieBanner: {
+      name: "OptanonAlertBoxClosed",
+      value: this.getCurrentDate(),
+      url: this.urls.lusini,
+    },
+
+    setCookies: (context) => {
+      console.log("-> setCookies");
+      return {
+        setB2b: async () => await context.addCookies([this.cookies.b2b]),
+        setB2c: async () => await context.addCookies([this.cookies.b2c]),
+        closeCookieBanner: async () =>
+          await context.addCookies([this.cookies.cookieBanner]),
+      };
+    },
+  };
 
   // get current date -> for cookie
   getCurrentDate() {
@@ -100,21 +98,18 @@ export default class Account {
     while (attempts < options.retry) {
       try {
         console.log("> secureClick");
-        console.log(
-          `--------------------------------------\nAttempt to click on ${selector}, try #${
-            attempts + 1
-          }`
-        );
+        console.log(`Attempt to click on ${selector}, try #${attempts + 1}`);
         const element = await this.page.locator(selector);
         console.log(">> Got the element: ", element);
         // Click the element
-        await element.click({ timeout: 2000 }); //{ timeout: 2000 }
+        await element.click({ timeout: 1000 }); //{ timeout: 2000 }
         console.log(`>> Clicked on ${selector} successfully.`);
         return true;
       } catch (error) {
         console.warn(`>>> Error clicking on ${selector}:`, error);
         // Set cookies to close the cookie banner and refresh the page
-        this.setCookies(this.page.context()).closeCookieBanner();
+        this.cookies.setCookies(this.page.context()).setB2b();
+        this.cookies.setCookies(this.page.context()).closeCookieBanner();
         await page.reload();
         // Increment the attempt counter
         attempts++;
