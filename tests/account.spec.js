@@ -20,16 +20,16 @@ test.describe("template account", () => {
     // Get cookies from the current context
     cookies = await context.cookies();
     console.log("Cookies after beforeAll:", cookies);
+
     await account.setCookies(context).setB2c();
     await account.setCookies(context).closeCookieBanner();
-    console.log("URL", page.url());
   });
 
   afterAll(async () => {
     // Get all cookies
-    const cookies = await context.cookies();
-    console.log(cookies);
-    console.log("AllCookies after afterAll:", cookies);
+    // const cookies = await context.cookies();
+    // console.log(cookies);
+    // console.log("AllCookies after afterAll:", cookies);
     await browser.close();
   });
 
@@ -39,7 +39,8 @@ test.describe("template account", () => {
     await expect(page.url()).not.toBe(use.baseURL + account.urls.accountLogin);
     // click on the account-icon
     // await pageElements.accountIcon().click();
-    await account.actions.clickIcon();
+    //await account.actions.clickIcon();
+    await account.secureClick(page, account.cssPathes.accountIcon);
     // await account.secureClick(account.elements.accountIcon());
     await page.waitForURL(use.baseURL + account.urls.accountLogin, {
       // Ensure consistent variable name
