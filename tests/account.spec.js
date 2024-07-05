@@ -21,8 +21,8 @@ test.describe("template account", () => {
     cookies = await context.cookies();
     console.log("Cookies after beforeAll:", cookies);
 
-    await account.setCookies(context).setB2c();
-    await account.setCookies(context).closeCookieBanner();
+    // await account.setCookies(context).setB2c();
+    // await account.setCookies(context).closeCookieBanner();
   });
 
   afterAll(async () => {
