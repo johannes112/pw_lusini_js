@@ -38,7 +38,7 @@ export default class Account {
       console.log("-> fillLoginForm");
       await this.page.fill(this.cssPathes.fieldEmailInput, user.email);
       await this.page.fill(this.cssPathes.fieldPasswordInput, user.password);
-      await this.page.click(this.cssPathes.buttonLogin);
+      await this.secureClick(this.page, this.cssPathes.buttonLogin);
     },
     clickIcon: async () => {
       console.log("-> clickIcon");
@@ -95,21 +95,27 @@ export default class Account {
   }
 
   // set a cookie and retry it
-  async secureClick(selector, options = { retry: 2 }) {
+  async secureClick(page, selector, options = { retry: 2 }) {
     let attempts = 0;
     while (attempts < options.retry) {
       try {
         console.log("> secureClick");
-        console.log(`Attempt to click on ${selector}, try #${attempts + 1}`);
+        console.log(
+          `--------------------------------------\nAttempt to click on ${selector}, try #${
+            attempts + 1
+          }`
+        );
         const element = await this.page.locator(selector);
-        // Set cookies to close the cookie banner
-        this.setCookies(this.page.context()).closeCookieBanner();
+        console.log(">> Got the element: ", element);
         // Click the element
-        console.log(`Clicked on ${selector} successfully.`);
-        await element.click({ timeout: 1000 });
+        await element.click({ timeout: 2000 }); //{ timeout: 2000 }
+        console.log(`>> Clicked on ${selector} successfully.`);
         return true;
       } catch (error) {
-        console.error(`Error clicking on ${selector}:`, error);
+        console.warn(`>>> Error clicking on ${selector}:`, error);
+        // Set cookies to close the cookie banner and refresh the page
+        this.setCookies(this.page.context()).closeCookieBanner();
+        await page.reload();
         // Increment the attempt counter
         attempts++;
         // Optionally, wait a bit before retrying (e.g., 500ms)
