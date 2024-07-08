@@ -16,13 +16,12 @@ test.describe("template account", () => {
     account = new AccountPage(page); // Assuming 'page' is defined and is an instance of Playwright's Page
     pageElements = account.elements;
     // set Cookies
+    await account.cookies.setCookies(context).setB2c();
+    await account.cookies.setCookies(context).closeCookieBanner();
 
     // Get cookies from the current context
     cookies = await context.cookies();
     console.log("Cookies after beforeAll:", cookies);
-
-    // await account.setCookies(context).setB2c();
-    // await account.setCookies(context).closeCookieBanner();
   });
 
   afterAll(async () => {
@@ -38,8 +37,6 @@ test.describe("template account", () => {
     // negative test
     await expect(page.url()).not.toBe(use.baseURL + account.urls.accountLogin);
     // click on the account-icon
-    // await pageElements.accountIcon().click();
-    //await account.actions.clickIcon();
     await account.secureClick(page, account.cssPathes.accountIcon);
     // await account.secureClick(account.elements.accountIcon());
     await page.waitForURL(use.baseURL + account.urls.accountLogin, {
