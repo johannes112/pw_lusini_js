@@ -1,4 +1,6 @@
 import AccountPage from "../pageobjects/AccountPage";
+import GlobalFunctions from "../helpers/Functions.js";
+import Cookies from "../helpers/Cookies";
 const { use } = require("../playwright.config");
 const { chromium } = require("playwright");
 import { users } from "../data/users.json";
@@ -16,8 +18,8 @@ test.describe("template account", () => {
     account = new AccountPage(page); // Assuming 'page' is defined and is an instance of Playwright's Page
     pageElements = account.elements;
     // set Cookies
-    await account.cookies.setCookies(context).setB2c();
-    await account.cookies.setCookies(context).closeCookieBanner();
+    await Cookies.setCookies(context).setB2c();
+    await Cookies.setCookies(context).closeCookieBanner();
 
     // Get cookies from the current context
     cookies = await context.cookies();
@@ -37,8 +39,8 @@ test.describe("template account", () => {
     // negative test
     await expect(page.url()).not.toBe(use.baseURL + account.urls.accountLogin);
     // click on the account-icon
-    await account.secureClick(page, account.cssPathes.accountIcon);
-    // await account.secureClick(account.elements.accountIcon());
+    await GlobalFunctions.secureClick(page, account.cssPathes.accountIcon);
+    // await GlobalFunctions.secureClick(account.elements.accountIcon());
     await page.waitForURL(use.baseURL + account.urls.accountLogin, {
       // Ensure consistent variable name
       timeout: 2000,
