@@ -1,4 +1,5 @@
 import config from "../playwright.config.js";
+import GlobalFunctions from "../helpers/Functions.js";
 export default class Account {
   constructor(page) {
     this.page = page;
@@ -18,7 +19,6 @@ export default class Account {
     fieldEmailInput: '[data-cy-handle="email-input"]',
     fieldPasswordInput: '[data-cy-handle="password-input"]',
     buttonLogin: '[data-cy-handle="login-btn"]',
-    // data-cy-state="login-form-password-error"
     stateErrorPassword: '[data-cy-state="login-form-password-error"]',
   };
 
@@ -41,11 +41,12 @@ export default class Account {
       console.log("-> fillLoginForm");
       await this.page.fill(this.cssPathes.fieldEmailInput, user.email);
       await this.page.fill(this.cssPathes.fieldPasswordInput, user.password);
-      await this.secureClick(this.page, this.cssPathes.buttonLogin);
+      await GlobalFunctions.secureClick(this.page, this.cssPathes.buttonLogin);
     },
     clickIcon: async () => {
       console.log("-> clickIcon");
-      await this.secureClick(this.cssPathes.accountIcon);
+      // await GlobalFunctions.secureClick(this.cssPathes.accountIcon);
+      await this.elements.accountIcon().click();
     },
   };
 
@@ -55,71 +56,4 @@ export default class Account {
     account: "account/",
     accountLogin: "account/login/",
   };
-
-  /** Cookies */
-  cookies = {
-    b2b: {
-      name: "channel",
-      value: "de-de_b2b",
-      url: this.urls.lusini,
-    },
-    b2c: {
-      name: "channel",
-      value: "de-de_b2c",
-      url: this.urls.lusini,
-    },
-    cookieBanner: {
-      name: "OptanonAlertBoxClosed",
-      value: this.getCurrentDate(),
-      url: this.urls.lusini,
-    },
-
-    setCookies: (context) => {
-      console.log("-> setCookies");
-      return {
-        setB2b: async () => await context.addCookies([this.cookies.b2b]),
-        setB2c: async () => await context.addCookies([this.cookies.b2c]),
-        closeCookieBanner: async () =>
-          await context.addCookies([this.cookies.cookieBanner]),
-      };
-    },
-  };
-
-  // get current date -> for cookie
-  getCurrentDate() {
-    const date = new Date();
-    const isoDate = date.toISOString();
-    return isoDate;
-  }
-
-  // set a cookie and retry it
-  async secureClick(page, selector, options = { retry: 2 }) {
-    let attempts = 0;
-    while (attempts < options.retry) {
-      try {
-        console.log("> secureClick");
-        console.log(`Attempt to click on ${selector}, try #${attempts + 1}`);
-        const element = await this.page.locator(selector);
-        console.log(">> Got the element: ", element);
-        // Click the element
-        await element.click({ timeout: 1000 }); //{ timeout: 2000 }
-        console.log(`>> Clicked on ${selector} successfully.`);
-        return true;
-      } catch (error) {
-        console.warn(`>>> Error clicking on ${selector}:`, error);
-        // Set cookies to close the cookie banner and refresh the page
-        this.cookies.setCookies(this.page.context()).setB2b();
-        this.cookies.setCookies(this.page.context()).closeCookieBanner();
-        await page.reload();
-        // Increment the attempt counter
-        attempts++;
-        // Optionally, wait a bit before retrying (e.g., 500ms)
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-    }
-    console.error(
-      `Failed to click on ${selector} after ${options.retry} attempts.`
-    );
-    return false; // Click failed after retrying
-  }
 }
